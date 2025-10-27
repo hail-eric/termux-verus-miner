@@ -49,31 +49,34 @@ Persyaratan Wajib
 * Aplikasi Termux:API (dari F-Droid atau GitHub).
 * Aplikasi Termux:Boot (dari F-Droid atau GitHub).
 
-Sangat disarankan untuk meng-install aplikasi Termux dari F-Droid, bukan Play Store, karena versi Play Store sudah tidak ter-update dan tidak akan berfungsi dengan benar.
+_Sangat disarankan untuk meng-install aplikasi Termux dari F-Droid, bukan Play Store, karena versi Play Store sudah tidak ter-update dan tidak akan berfungsi dengan benar.
+_
 
-Langkah-langkah Instalasi
+**Langkah-langkah Instalasi
+**
 
-1. Izinkan Termux mengakses penyimpanan Anda. Ketik di Termux:
+**1. Izinkan Termux mengakses penyimpanan Anda. Ketik di Termux:**
 
 Bash
 termux-setup-storage
 (Lalu pilih "Izinkan" pada pop-up yang muncul)
 
-2. (PENTING) Aktifkan Wake Lock agar HP tidak sleep saat proses instalasi. Ketik:
+**2. (PENTING) Aktifkan Wake Lock agar HP tidak sleep saat proses instalasi. Ketik:**
 
 Bash
 termux-wake-lock
 (Layar HP Anda akan tetap menyala)
 
-3. Salin file autoinstall.sh dari repositori ini ke penyimpanan internal Anda (misalnya, ke folder /sdcard/Download/).
+**3. Salin file autoinstall.sh dari repositori ini ke penyimpanan internal Anda (misalnya, ke folder /sdcard/Download/).**
 
-4. Jalankan skrip instalasi. (Contoh jika Anda meletakkannya di folder Download):
+**4. Jalankan skrip instalasi. (Contoh jika Anda meletakkannya di folder Download):
+**
 
-Bash
 bash /sdcard/Download/autoinstall.sh
-5. Proses instalasi akan berjalan (5-10 menit tergantung HP Anda).
 
-6. Setelah selesai, mining akan otomatis dimulai dan Anda akan melihat log "accepted" ⚒️.
+**5. Proses instalasi akan berjalan (5-10 menit tergantung HP Anda).**
+
+**6. Setelah selesai, mining akan otomatis dimulai dan Anda akan melihat log "accepted" ⚒️.**
 
 🛠️ Perintah Setelah Instalasi
 
@@ -97,8 +100,9 @@ tail -f ~/ccminer/miner.log
 
 * Melihat Spesifikasi HP Anda:
 
----
-
 Bash
 spek
-* Me-restart Miner Secara Manual: Cukup tutup paksa (force close) Termux dan buka lagi. Skrip auto-start akan berjalan.
+
+---
+
+**Me-restart Miner Secara Manual: Cukup tutup paksa (force close) Termux dan buka lagi. Skrip auto-start akan berjalan.**
