@@ -39,5 +39,66 @@ Fitur **Pengecekan Koneksi Akurat** (cek *port*) juga terikat pada alamat `sg.vi
 **ANDA WAJIB MENGEDIT FILE INI SETELAH INSTALASI** untuk memasukkan alamat *wallet* Anda. Jika Anda menggunakan *pool* yang berbeda, sesuaikan juga alamat *pool* dan *port*-nya.
 
 Gunakan perintah ini untuk mengedit:
-```bash
+`bash
+nano ~/ccminer/start.sh`
+
+🚀 Cara Penggunaan (Instalasi)
+
+Persyaratan Wajib
+* Aplikasi Termux (dari F-Droid atau GitHub).
+* Aplikasi Termux:API (dari F-Droid atau GitHub).
+* Aplikasi Termux:Boot (dari F-Droid atau GitHub).
+
+Sangat disarankan untuk meng-install aplikasi Termux dari F-Droid, bukan Play Store, karena versi Play Store sudah tidak ter-update dan tidak akan berfungsi dengan benar.
+
+Langkah-langkah Instalasi
+
+1. Izinkan Termux mengakses penyimpanan Anda. Ketik di Termux:
+
+Bash
+termux-setup-storage
+(Lalu pilih "Izinkan" pada pop-up yang muncul)
+
+2. (PENTING) Aktifkan Wake Lock agar HP tidak sleep saat proses instalasi. Ketik:
+
+Bash
+termux-wake-lock
+(Layar HP Anda akan tetap menyala)
+
+3. Salin file autoinstall.sh dari repositori ini ke penyimpanan internal Anda (misalnya, ke folder /sdcard/Download/).
+
+4. Jalankan skrip instalasi. (Contoh jika Anda meletakkannya di folder Download):
+
+Bash
+bash /sdcard/Download/autoinstall.sh
+5. Proses instalasi akan berjalan (5-10 menit tergantung HP Anda).
+
+6. Setelah selesai, mining akan otomatis dimulai dan Anda akan melihat log "accepted" ⚒️.
+
+🛠️ Perintah Setelah Instalasi
+
+Setelah instalasi berhasil, Anda bisa menggunakan perintah praktis ini kapan saja di Termux:
+
+* Mengedit Wallet/Pool Anda:
+
+Bash
 nano ~/ccminer/start.sh
+(Ganti alamat wallet RGzg... dengan alamat wallet Anda!)
+
+---
+
+* Melihat Log Mining Secara Manual:
+
+Bash
+tail -f ~/ccminer/miner.log
+(Tekan Ctrl + C untuk berhenti melihat)
+
+---
+
+* Melihat Spesifikasi HP Anda:
+
+---
+
+Bash
+spek
+* Me-restart Miner Secara Manual: Cukup tutup paksa (force close) Termux dan buka lagi. Skrip auto-start akan berjalan.
