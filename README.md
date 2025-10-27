@@ -68,8 +68,7 @@ termux-wake-lock
 
 **3. Salin file autoinstall.sh dari repositori ini ke penyimpanan internal Anda (misalnya, ke folder /sdcard/Download/).**
 
-**4. Jalankan skrip instalasi. (Contoh jika Anda meletakkannya di folder Download):
-**
+**4. Jalankan skrip instalasi. (Contoh jika Anda meletakkannya di folder Download):**
 
 bash /sdcard/Download/autoinstall.sh
 
