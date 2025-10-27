@@ -42,6 +42,8 @@ Gunakan perintah ini untuk mengedit:
 `bash
 nano ~/ccminer/start.sh`
 
+---
+
 🚀 Cara Penggunaan (Instalasi)
 
 Persyaratan Wajib
@@ -51,8 +53,9 @@ Persyaratan Wajib
 
 Sangat disarankan untuk meng-install aplikasi Termux dari F-Droid, bukan Play Store, karena versi Play Store sudah tidak ter-update dan tidak akan berfungsi dengan benar.
 
-**Langkah-langkah Instalasi
-**
+---
+
+**Langkah-langkah Instalasi**
 
 **1. Izinkan Termux mengakses penyimpanan Anda. Ketik di Termux:**
 
@@ -77,6 +80,8 @@ bash /sdcard/Download/autoinstall.sh
 **6. Setelah selesai, mining akan otomatis dimulai dan Anda akan melihat log "accepted" ⚒️.**
 
 🛠️ Perintah Setelah Instalasi
+
+---
 
 Setelah instalasi berhasil, Anda bisa menggunakan perintah praktis ini kapan saja di Termux:
 
