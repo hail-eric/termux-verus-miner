@@ -49,8 +49,7 @@ Persyaratan Wajib
 * Aplikasi Termux:API (dari F-Droid atau GitHub).
 * Aplikasi Termux:Boot (dari F-Droid atau GitHub).
 
-_Sangat disarankan untuk meng-install aplikasi Termux dari F-Droid, bukan Play Store, karena versi Play Store sudah tidak ter-update dan tidak akan berfungsi dengan benar.
-_
+Sangat disarankan untuk meng-install aplikasi Termux dari F-Droid, bukan Play Store, karena versi Play Store sudah tidak ter-update dan tidak akan berfungsi dengan benar.
 
 **Langkah-langkah Instalasi
 **
