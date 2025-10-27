@@ -79,9 +79,9 @@ bash /sdcard/Download/autoinstall.sh
 
 **6. Setelah selesai, mining akan otomatis dimulai dan Anda akan melihat log "accepted" ⚒️.**
 
-🛠️ Perintah Setelah Instalasi
-
 ---
+
+🛠️ Perintah Setelah Instalasi
 
 Setelah instalasi berhasil, Anda bisa menggunakan perintah praktis ini kapan saja di Termux:
 
