@@ -28,7 +28,7 @@ fi
 
 RAM_MB=$(grep -m1 'MemTotal' /proc/meminfo | awk '{print int($2/1024)}')
 
-if   [ $RAM_MB -le 768 ]; then
+if [ $RAM_MB -le 768 ]; then
   RAM_GB="0.5"
 elif [ $RAM_MB -le 1536 ]; then
   RAM_GB=1
@@ -72,8 +72,7 @@ echo ""
 sleep 2
 
 echo ""
-msg1="\e[1;33mscript by \e[36mNV\e[31mNT \e[37mProject\e[0m"
-msg2="\e[1;33mPlease like, share and subscribe my channel\e[0m"
+msg1="\e[1;33mScript by \e[36mNV\e[31mNT \e[37mProject\e[0m"
 
 for i in {1..5}; do
   echo -ne "\r$msg1 $(printf ' %.0s.' $(seq 1 $i))"
@@ -81,11 +80,6 @@ for i in {1..5}; do
 done
 echo -e "\n"
 
-for i in {1..5}; do
-  echo -ne "\r$msg2 $(printf ' %.0s.' $(seq 1 $i))"
-  sleep 1
-done
-echo -e "\n"
 echo""
 
 pkg update -y && yes | pkg upgrade -y
@@ -95,7 +89,7 @@ pkg install wget git nano termux-api curl tar unzip file netcat-openbsd -y
 
 if [ "$OS_BITS" = "32-bit" ]; then
     echo -e "\e[1;33m[INFO] Device 32-bit, memasang ccminer yang sudah di patch, silahkan tunggu\e[0m"
-sleep 5
+    sleep 5
 
     cd ~
     rm -rf jansson
@@ -139,7 +133,7 @@ sleep 5
 
 else
     echo -e "\e[1;33m[INFO] Device 64-bit, memasang ccminer, silahkan tunggu\e[0m"
-sleep 5
+    sleep 5
     cd ~
     rm -rf ~/ccminer
     mkdir -p ~/ccminer && cd ~/ccminer
@@ -166,7 +160,7 @@ else
 fi
 
 cat > ~/delete.sh <<'EOF'
-#!/data/data/com.termux/files/usr/bin/bash
+#!/data/data/com/termux/files/usr/bin/bash
 
 rm -f ~/.termux/boot/*.sh 2>/dev/null
 find ~/ -maxdepth 1 -type f -name "*.sh" ! -path "~/ccminer/*" -exec rm -f {} \;
@@ -185,12 +179,11 @@ cd ~/ccminer
 # --- [REVISI 1] Script Header Anda ---
 clear
 echo "============================================"
-echo "⚙️  Script Auto Mining Edited by • B Σ N • ⚒️"
-echo "🕐 Started at: $(date '+%Y-%m-%d %H:%M:%S')"
+echo "⚙ Script Auto Mining Edited by • B Σ N • ⚒️"
+echo "🕐 Started at: $(date '+%Y-%m-%d %H:%M:%S') 🕐"
 echo "============================================"
 termux-wake-lock
 # --- Akhir Revisi 1 ---
-
 
 # --- [REVISI 2.1] Script Pengecekan Port Pool (Lebih Akurat) ---
 POOL_ADDRESS="sg.vipor.net"
@@ -206,15 +199,14 @@ until nc -z -w 5 $POOL_ADDRESS $POOL_PORT &>/dev/null; do
   sleep 10
 done
 
-echo "[+] Connection to pool OK. Starting miner ⚒️"
+echo "[+] Connection to pool OK. Starting Miner ⚒️"
 # --- Akhir Revisi 2.1 ---
-
 
 # --- [REVISI 4] Fitur Auto-Threads ---
 # Deteksi jumlah total core CPU
 CPU_CORES=$(grep -c '^processor' /proc/cpuinfo)
 
-# Set thread ke Total Core - 1 (sisakan 1 core untuk sistem)
+# Set thread ke Total Core - 1 (pengaturan default sisakan 1 core untuk sistem)
 # Jika core hanya 1, tetap gunakan 1.
 if [ "$CPU_CORES" -gt 1 ]; then
   MINER_THREADS=$((CPU_CORES - 1))
@@ -248,16 +240,84 @@ cat > ~/ccminer/log_rotator.sh <<'EOF'
 # Mengosongkan file log dengan cara menimpanya dengan pesan ini
 echo "[$(date)] Log rotator: Berhasil mengosongkan log." > ~/ccminer/miner.log
 EOF
+
 chmod +x ~/ccminer/log_rotator.sh
 # --- Akhir RevisI 5 ---
+
+# --- [REVISI 6] Buat Skrip "Reset Total" (restart-miner.sh) ---
+echo "[+] Membuat skrip Reset Total (restart-miner.sh)..."
+cat > ~/restart-miner.sh <<'EOF'
+#!/data/data/com.termux/files/usr/bin/bash
+
+# Beri log bahwa restart total sedang terjadi
+echo "[$(date)] Reset Total: Merestart miner..." >> $HOME/ccminer/watchdog_log.txt
+
+# 1. Hentikan semua proses ccminer
+pkill -f ccminer
+sleep 1
+pkill -9 -f ccminer # Paksa mati
+
+# 2. Hapus SEMUA job scheduler yang lama
+termux-job-scheduler -c --all
+sleep 2
+
+# 3. Mulai ulang miner (panggil start.sh)
+bash $HOME/ccminer/start.sh
+
+# 4. DAFTARKAN KEMBALI job-job kita
+# Ini PENTING karena start.sh Anda tidak mendaftarkan job
+
+# Job 1: Watchdog PINTAR (15 Menit)
+termux-job-scheduler --script $HOME/ccminer/check_miner.sh --period-ms 900000 --job-id 100 --network-type any --persisted true
+
+# Job 2: Log Rotator (1 Minggu)
+termux-job-scheduler --script $HOME/ccminer/log_rotator.sh --period-ms 604800000 --job-id 101 --network-type any --persisted true
+
+EOF
+
+chmod +x ~/restart-miner.sh
+# --- Akhir Revisi 6 ---
+
+# --- [REVISI 7] Buat Skrip "Pendeteksi Macet" (check_miner.sh) ---
+echo "[+] Membuat skrip Pendeteksi Macet (check_miner.sh)..."
+# VERSI BERSIH DARI SPASI ANEH (NBSP)
+cat > ~/ccminer/check_miner.sh <<'EOF'
+#!/data/data/com.termux/files/usr/bin/bash
+
+LOG_FILE="$HOME/ccminer/miner.log"
+RESTART_SCRIPT="$HOME/restart-miner.sh"
+# Batas waktu macet (15 menit = 900 detik)
+MAX_STUCK_TIME=900
+
+# 1. Cek jika proses ccminer CRASH (tidak ada)
+if ! pgrep -f "ccminer" > /dev/null; then
+    echo "[$(date)] Check: ccminer CRASH. Merestart..." >> $HOME/ccminer/watchdog_log.txt
+    bash "$RESTART_SCRIPT"
+    exit 0
+fi
+
+# 2. Cek jika proses STUCK (log tidak update)
+if [ -f "$LOG_FILE" ]; then
+    NOW=$(date +%s)
+    LAST_MOD=$(stat -c %Y "$LOG_FILE")
+    AGE=$((NOW - LAST_MOD))
+
+    if [ $AGE -gt $MAX_STUCK_TIME ]; then
+        echo "[$(date)] Check: Log macet ($AGE det). Merestart..." >> $HOME/ccminer/watchdog_log.txt
+        bash "$RESTART_SCRIPT"
+    fi
+fi
+EOF
+
+chmod +x ~/ccminer/check_miner.sh
+# --- Akhir Revisi 7 ---
 
 mkdir -p ~/.termux/boot
 cat > ~/.termux/boot/auto_boot_mining.sh <<'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 termux-wake-lock
-pkill ccminer
-pkill start.sh
-bash ~/ccminer/start.sh
+# Panggil skrip restart total agar watchdog juga ikut terdaftar
+bash ~/restart-miner.sh
 sleep 5
 am start -n com.termux/.app.TermuxActivity
 EOF
@@ -269,6 +329,7 @@ cat > $PREFIX/bin/setting <<'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 nano ~/ccminer/start.sh
 EOF
+
 chmod +x $PREFIX/bin/setting
 
 mkdir -p $PREFIX/bin
@@ -292,7 +353,7 @@ fi
 
 RAM_MB=$(grep -m1 'MemTotal' /proc/meminfo | awk '{print int($2/1024)}')
 
-if   [ $RAM_MB -le 768 ]; then
+if [ $RAM_MB -le 768 ]; then
   RAM_GB="0.5"
 elif [ $RAM_MB -le 1536 ]; then
   RAM_GB=1
@@ -342,17 +403,16 @@ cat >> $PREFIX/etc/bash.bashrc <<'EOF'
 
 # ========== AUTO MINING VERUS ==========
 echo ""
-msg1="\e[1;33mSubscribe channel \e[36mNV\e[31mNT \e[37mProject\e[0m"
+msg1="\e[36mNV\e[31mNT \e[37mProject\e[0m"
 
 for i in {1..5}; do
   echo -ne "\r$msg1 $(printf ' %.0s.' $(seq 1 $i))"
   sleep 1
 done
 echo -e "\n"
-echo "[$(date)] [AUTOMINING] Memulai mining..."
-pkill ccminer
-pkill start.sh
-bash ~/ccminer/start.sh
+echo "[$(date)] [AUTOMINING] Memulai/Merestart Sesi Mining (Watchdog Aktif)..."
+# Panggil skrip restart total agar watchdog juga ikut terdaftar
+bash ~/restart-miner.sh
 sleep 3
 tail -f ~/ccminer/miner.log
 # =======================================
@@ -366,29 +426,23 @@ for i in {1..5}; do
 done
 echo -e "\n"
 
-for i in {1..5}; do
-  echo -ne "\r$msg2 $(printf ' %.0s.' $(seq 1 $i))"
-  sleep 1
-done
-
 echo -e "\n"
-# --- [REVISI 3 & 5] Pengaturan Job Scheduler (Watchdog & Log Rotator) ---
+# --- [REVISI BARU] Pengaturan Job Scheduler (SISTEM WATCHDOG PINTAR) ---
 echo ""
-echo -e "\e[1;33m[+] Memasang Watchdog (Auto-Restart) setiap 2 jam..."
+echo -e "\e[1;33m[+] Memasang Smart Watchdog (Pendeteksi Macet) setiap 15 menit..."
 echo -e "\e[1;33m[+] Memasang Log Rotator (Pembersih Log) setiap 1 minggu..."
 sleep 2
 
 # Hapus semua job lama (untuk bersih-bersih)
 termux-job-scheduler --cancel-all 2>/dev/null
 
-# Job 1: Watchdog (Auto-Restart) - 2 Jam (7200000 ms)
-# Ini akan me-restart miner Anda setiap 2 jam untuk atasi stuck
-termux-job-scheduler --script ~/.termux/boot/auto_boot_mining.sh --period-ms 7200000 --job-id 1
+# Job 1: Smart Watchdog (Pendeteksi Macet) - 15 Menit (900000 ms)
+# Ini akan memanggil check_miner.sh, yang akan memanggil restart-miner.sh JIKA macet.
+termux-job-scheduler --script ~/ccminer/check_miner.sh --period-ms 900000 --job-id 100 --network-type any --persisted true
 
 # Job 2: Log Rotator (Pembersih Log) - 1 Minggu (604800000 ms)
-# Ini akan mengosongkan file miner.log Anda setiap 1 minggu
-termux-job-scheduler --script ~/ccminer/log_rotator.sh --period-ms 604800000 --job-id 2
-# --- Akhir Revisi 3 & 5 ---
+termux-job-scheduler --script ~/ccminer/log_rotator.sh --period-ms 604800000 --job-id 101 --network-type any --persisted true
+# --- Akhir Revisi BARU ---
 
 echo ""
 echo "INSTALASI SELESAI"
