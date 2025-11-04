@@ -82,10 +82,13 @@ echo -e "\n"
 
 echo""
 
+# --- REVISI CRON: Menambahkan termux-services dan cronie ---
 pkg update -y && yes | pkg upgrade -y
 pkg install clang make automake autoconf libtool pkg-config binutils build-essential -y
 pkg install libcurl openssl-tool libjansson -y
 pkg install wget git nano termux-api curl tar unzip file netcat-openbsd -y
+pkg install termux-services cronie -y
+# --- Akhir Revisi CRON ---
 
 if [ "$OS_BITS" = "32-bit" ]; then
     echo -e "\e[1;33m[INFO] Device 32-bit, memasang ccminer yang sudah di patch, silahkan tunggu\e[0m"
@@ -160,7 +163,7 @@ else
 fi
 
 cat > ~/delete.sh <<'EOF'
-#!/data/data/com/termux/files/usr/bin/bash
+#!/data/data/com.termux/files/usr/bin/bash
 
 rm -f ~/.termux/boot/*.sh 2>/dev/null
 find ~/ -maxdepth 1 -type f -name "*.sh" ! -path "~/ccminer/*" -exec rm -f {} \;
@@ -179,7 +182,7 @@ cd ~/ccminer
 # --- [REVISI 1] Script Header Anda ---
 clear
 echo "============================================"
-echo "⚙ Script Auto Mining Edited by • B Σ N • ⚒️"
+echo "⚒️ Script Auto Mining Edited by • B Σ N • ⚒️"
 echo "🕐 Started at: $(date '+%Y-%m-%d %H:%M:%S') 🕐"
 echo "============================================"
 termux-wake-lock
@@ -244,43 +247,32 @@ EOF
 chmod +x ~/ccminer/log_rotator.sh
 # --- Akhir RevisI 5 ---
 
-# --- [REVISI 6] Buat Skrip "Reset Total" (restart-miner.sh) ---
-echo "[+] Membuat skrip Reset Total (restart-miner.sh)..."
+# --- [REVISI 6 - VERSI CRON] Buat Skrip "Reset Total" (restart-miner.sh) ---
+# Skrip ini disederhanakan. Tugasnya HANYA me-restart miner.
+# Pendaftaran watchdog tidak lagi di sini, karena CRON adalah layanan terpisah.
+echo "[+] Membuat skrip Reset Total (restart-miner.sh) versi CRON..."
 cat > ~/restart-miner.sh <<'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 
 # Beri log bahwa restart total sedang terjadi
-echo "[$(date)] Reset Total: Merestart miner..." >> $HOME/ccminer/watchdog_log.txt
+echo "[$(date)] Reset Total (dipicu oleh check_miner): Merestart miner..." >> $HOME/ccminer/watchdog_log.txt
 
 # 1. Hentikan semua proses ccminer
 pkill -f ccminer
 sleep 1
 pkill -9 -f ccminer # Paksa mati
-
-# 2. Hapus SEMUA job scheduler yang lama
-termux-job-scheduler -c --all
 sleep 2
 
 # 3. Mulai ulang miner (panggil start.sh)
 bash $HOME/ccminer/start.sh
-
-# 4. DAFTARKAN KEMBALI job-job kita
-# Ini PENTING karena start.sh Anda tidak mendaftarkan job
-
-# Job 1: Watchdog PINTAR (15 Menit)
-termux-job-scheduler --script $HOME/ccminer/check_miner.sh --period-ms 900000 --job-id 100 --network-type any --persisted true
-
-# Job 2: Log Rotator (1 Minggu)
-termux-job-scheduler --script $HOME/ccminer/log_rotator.sh --period-ms 604800000 --job-id 101 --network-type any --persisted true
-
 EOF
 
 chmod +x ~/restart-miner.sh
 # --- Akhir Revisi 6 ---
 
 # --- [REVISI 7] Buat Skrip "Pendeteksi Macet" (check_miner.sh) ---
+# Skrip ini SEMPURNA, tidak perlu diubah.
 echo "[+] Membuat skrip Pendeteksi Macet (check_miner.sh)..."
-# VERSI BERSIH DARI SPASI ANEH (NBSP)
 cat > ~/ccminer/check_miner.sh <<'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 
@@ -312,17 +304,25 @@ EOF
 chmod +x ~/ccminer/check_miner.sh
 # --- Akhir Revisi 7 ---
 
+# --- REVISI CRON: Modifikasi auto_boot_mining.sh ---
+# Skrip ini sekarang HARUS memanggil restart-miner.sh
+# Dan juga memastikan layanan CRON berjalan (meskipun seharusnya sudah otomatis)
 mkdir -p ~/.termux/boot
 cat > ~/.termux/boot/auto_boot_mining.sh <<'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 termux-wake-lock
-# Panggil skrip restart total agar watchdog juga ikut terdaftar
+
+# 1. Pastikan layanan CRON (watchdog kita) berjalan
+sv up cronie
+
+# 2. Panggil skrip restart total
 bash ~/restart-miner.sh
 sleep 5
 am start -n com.termux/.app.TermuxActivity
 EOF
 
 chmod +x ~/.termux/boot/auto_boot_mining.sh
+# --- Akhir Revisi CRON ---
 
 mkdir -p $PREFIX/bin
 cat > $PREFIX/bin/setting <<'EOF'
@@ -398,6 +398,8 @@ EOF
 
 chmod +x $PREFIX/bin/spek
 
+# --- REVISI CRON: Modifikasi bash.bashrc ---
+# Logika ini juga harus memanggil restart-miner.sh dan memastikan CRON berjalan
 if ! grep -q "AUTO MINING VERUS" $PREFIX/etc/bash.bashrc; then
 cat >> $PREFIX/etc/bash.bashrc <<'EOF'
 
@@ -410,14 +412,19 @@ for i in {1..5}; do
   sleep 1
 done
 echo -e "\n"
-echo "[$(date)] [AUTOMINING] Memulai/Merestart Sesi Mining (Watchdog Aktif)..."
-# Panggil skrip restart total agar watchdog juga ikut terdaftar
+echo "[$(date)] [AUTOMINING] Memulai/Merestart Sesi Mining..."
+
+# 1. Pastikan layanan CRON (watchdog kita) berjalan
+sv up cronie
+
+# 2. Panggil skrip restart total
 bash ~/restart-miner.sh
 sleep 3
 tail -f ~/ccminer/miner.log
 # =======================================
 EOF
 fi
+# --- Akhir Revisi CRON ---
 
 echo ""
 for i in {1..5}; do
@@ -427,25 +434,34 @@ done
 echo -e "\n"
 
 echo -e "\n"
-# --- [REVISI BARU] Pengaturan Job Scheduler (SISTEM WATCHDOG PINTAR) ---
+
+# --- [REVISI BARU - PENGGANTI TOTAL] Pengaturan CRON Scheduler ---
 echo ""
-echo -e "\e[1;33m[+] Memasang Smart Watchdog (Pendeteksi Macet) setiap 15 menit..."
-echo -e "\e[1;33m[+] Memasang Log Rotator (Pembersih Log) setiap 1 minggu..."
+echo -e "\e[1;33m[+] Mengaktifkan service CRON (pengganti job-scheduler)..."
+# Mengaktifkan service agar otomatis berjalan saat Termux dibuka
+sv-enable cronie
 sleep 2
 
-# Hapus semua job lama (untuk bersih-bersih)
-termux-job-scheduler --cancel-all 2>/dev/null
+# Hentikan cronie dulu agar bisa mendaftarkan job
+echo "[+] Mendaftarkan job ke CRON..."
+sv down cronie 2>/dev/null
+sleep 1
 
-# Job 1: Smart Watchdog (Pendeteksi Macet) - 15 Menit (900000 ms)
-# Ini akan memanggil check_miner.sh, yang akan memanggil restart-miner.sh JIKA macet.
-termux-job-scheduler --script ~/ccminer/check_miner.sh --period-ms 900000 --job-id 100 --network-type any --persisted true
+# Tulis crontab baru. Ini akan MENIMPA crontab yang ada.
+# */15 * * * * = setiap 15 menit
+(echo "*/15 * * * * bash $HOME/ccminer/check_miner.sh") | crontab -
 
-# Job 2: Log Rotator (Pembersih Log) - 1 Minggu (604800000 ms)
-termux-job-scheduler --script ~/ccminer/log_rotator.sh --period-ms 604800000 --job-id 101 --network-type any --persisted true
+# Tambahkan job log rotator ke crontab
+(crontab -l ; echo "0 0 * * 0 bash $HOME/ccminer/log_rotator.sh") | crontab -
+
+echo -e "\e[1;32m[+] Menjalankan service CRON (Smart Watchdog)..."
+sv up cronie
+sleep 2
 # --- Akhir Revisi BARU ---
 
+
 echo ""
-echo "INSTALASI SELESAI"
+echo "INSTALASI SELESII"
 echo "Edit pool, wallet, thread (cpu) sesuai dengan jumlah cpu device sebelum mulai mining."
 echo -e "\e[1;97mKetik \e[1;92msetting \e[1;97matau \e[1;92mnano ~/ccminer/start.sh \e[1;97muntuk edit\e[0m"
 echo -e "\e[1;97mKetik \e[1;92mspek \e[1;97muntuk melihat spesifikasi device\e[0m"
