@@ -4,27 +4,39 @@ Ini adalah Script *auto-install* yang telah dimodifikasi dan disempurnakan untuk
 
 Script ini dirancang untuk "plug and play", mengotomatiskan hampir semua aspek *setup* dan *maintenance* (perawatan).
 
-## ✨ Fitur Utama
+## ✨ Fitur Utama (Revisi CRON - Sangat Stabil)
 
-Script ini menambahkan banyak fitur penting di atas fungsionalitas dasarnya:
+Script ini telah dimodifikasi secara besar-besaran untuk stabilitas 24/7, menggantikan komponen Android yang tidak stabil dengan layanan Linux yang kuat.
 
-* **Instalasi Otomatis:** Menginstal semua *package* yang diperlukan dan meng-kompilasi `ccminer`.
+* **Instalasi Otomatis:** Menginstal semua *package* yang diperlukan (termasuk `cronie`) dan `ccminer`.
+
 * **Deteksi CPU Otomatis (Auto-Threads):** Secara cerdas mendeteksi jumlah *core* CPU Anda dan mengatur jumlah *thread* ke `Total Core - 1` agar HP tidak *freeze* atau *lag* parah.
-* **Pengecekan Koneksi Akurat:** Menggunakan `netcat` untuk mengecek apakah *port pool mining* (TCP) benar-benar terbuka sebelum *miner* berjalan. Jika *pool* *down* atau internet mati, Script akan menunggu dan mencoba lagi.
-* **Watchdog (Anti-Stuck):** Menggunakan `termux-job-scheduler` untuk me-restart *miner* secara otomatis setiap **2 jam**. Ini adalah solusi untuk masalah umum di mana *miner* *freeze*/*stuck* setelah berjalan lama.
-* **Rotasi Log Mingguan:** Menjalankan *job* pembersihan otomatis setiap **1 minggu** untuk mengosongkan file `miner.log`, mencegah penyimpanan internal Anda penuh oleh *log* yang menumpuk berbulan-bulan.
-* **Personalisasi:** Script *booting* menyertakan *header* kustom (dengan dukungan emoji ⚒️).
-* **Auto-Start Instan:** *Mining* akan langsung berjalan otomatis setelah instalasi selesai, Anda tidak perlu me-restart Termux.
+
+* **Pengecekan Koneksi Akurat:** Menggunakan `netcat` untuk mengecek apakah *port pool mining* (TCP) benar-benar terbuka sebelum *miner* berjalan.
+
+* **Watchdog Pintar (Anti-Stuck & Anti-Crash) [REVISI BESAR!]**
+    Sistem lama (restart "buta" 2 jam) telah **dihapus**. Sistem baru ini "pintar" dan berjalan setiap 15 menit untuk memeriksa:
+    1.  **Mendeteksi *Stuck* (Macet):** Memeriksa *timestamp* file `miner.log`. Jika log tidak bergerak (tidak ada *hashrate* atau 'accept' baru) selama 15 menit, ia akan memicu *restart* paksa. Ini adalah solusi untuk masalah *freeze* di Custom ROM/Kernel.
+    2.  **Mendeteksi *Crash*:** Memeriksa apakah proses `ccminer` *crash* atau hilang. Jika ya, ia akan langsung memicu *restart*.
+
+* **Scheduler CRONIE (Jauh Lebih Kuat) [REVISI BESAR!]**
+    Kami **tidak lagi** menggunakan `termux-job-scheduler` (yang lemah dan sering "dimatikan" oleh sistem Android/ROM). Script ini sekarang menginstal layanan `cronie` (layanan `cron` standar Linux) yang jauh lebih kuat dan berjalan sebagai *service* persisten di latar belakang, memastikan *watchdog* 15 menit Anda *selalu* berjalan.
+
+* **Rotasi Log Mingguan (via CRON):**
+    Menjalankan *job* `cron` otomatis setiap hari Minggu untuk mengosongkan file `miner.log`, mencegah penyimpanan internal Anda penuh.
+
+* **Auto-Start Instan & Auto-Boot:**
+    *Mining* akan langsung berjalan otomatis setelah instalasi selesai. Script juga akan berjalan otomatis setiap kali Anda membuka Termux atau me-restart HP (via `Termux:Boot`), dan akan langsung mengaktifkan *watchdog* `cron`.
 
 ---
 
 ## 🎖️ Penghargaan dan Kredit
 
-Script ini adalah modifikasi. Script dasarnya yang luar biasa dibuat oleh **NVNT Project**.
+Script ini adalah modifikasi berat. Script dasarnya yang luar biasa dibuat oleh **NVNT Project.**
 
-Saya (B Σ N) telah menambahkan fitur-fitur di atas untuk stabilitas dan otomatisasi. Dukung kreator aslinya dengan mengunjungi channel YouTube-nya:
+Saya (B Σ N / hail-eric) telah menambahkan fitur-fitur di atas untuk stabilitas dan otomatisasi penuh. Dukung kreator aslinya dengan mengunjungi channel YouTube-nya:
 
-* **Channel YouTube:** **[https://www.youtube.com/@NVNTproject](https://www.youtube.com/@NVNTproject)**
+Channel YouTube: https://www.youtube.com/@NVNTproject
 
 ---
 
@@ -44,18 +56,18 @@ nano ~/ccminer/start.sh`
 
 ---
 
-🚀 Cara Penggunaan (Instalasi)
+## 🚀 Cara Penggunaan (Instalasi)
 
 Persyaratan Wajib
-* Aplikasi Termux (dari F-Droid atau GitHub).
-* Aplikasi Termux:API (dari F-Droid atau GitHub).
-* Aplikasi Termux:Boot (dari F-Droid atau GitHub).
+* **Aplikasi Termux (dari F-Droid atau GitHub).**
+* **Aplikasi Termux:API (dari F-Droid atau GitHub).**
+* **Aplikasi Termux:Boot (dari F-Droid atau GitHub).**
 
-Sangat disarankan untuk meng-install aplikasi Termux dari F-Droid, bukan Play Store, karena versi Play Store sudah tidak ter-update dan tidak akan berfungsi dengan benar.
+_Sangat disarankan untuk meng-install aplikasi Termux dari F-Droid, bukan Play Store, karena versi Play Store sudah tidak ter-update dan tidak akan berfungsi dengan benar._
 
 ---
 
-**Langkah-langkah Instalasi**
+## 📌 **Langkah-langkah Instalasi**
 
 **1. Izinkan Termux mengakses penyimpanan Anda. Ketik di Termux:**
 
@@ -81,31 +93,37 @@ bash /sdcard/Download/autoinstall.sh
 
 ---
 
-🛠️ Perintah Setelah Instalasi
+## 🛠️ Perintah Setelah Instalasi
 
 Setelah instalasi berhasil, Anda bisa menggunakan perintah praktis ini kapan saja di Termux:
 
-* Mengedit Wallet/Pool Anda:
+* 💵 **Mengedit Wallet/Pool Anda:**
 
+```yaml
 Bash
 nano ~/ccminer/start.sh
 (Ganti alamat wallet RGzg... dengan alamat wallet Anda!)
+```
 
 ---
 
-* Melihat Log Mining Secara Manual:
+* 📊 **Melihat Log Mining Secara Manual:**
 
+```yaml
 Bash
 tail -f ~/ccminer/miner.log
 (Tekan Ctrl + C untuk berhenti melihat)
+```
 
 ---
 
-* Melihat Spesifikasi HP Anda:
+* 🖥️ **Melihat Spesifikasi HP Anda:**
 
+```yaml
 Bash
 spek
+```
 
 ---
 
-**Me-restart Miner Secara Manual: Cukup tutup paksa (force close) Termux dan buka lagi. Script auto-start akan berjalan.**
+♻️ _**Me-restart Miner Secara Manual: Cukup tutup paksa (force close) Termux dan buka lagi. Script auto-start akan berjalan.**_
